@@ -88,10 +88,18 @@ if (!function_exists('resolver_destino_entrada')) {
         }
 
         $rutaVista = normalizar_ruta_publica_vista($ruta);
-        if (resolver_vista_publica($rutaVista) !== null) {
+        $formatoVista = 'html';
+
+        if (str_ends_with($rutaVista, '/img')) {
+            $rutaVista = normalizar_ruta_publica_vista(substr($rutaVista, 0, -4));
+            $formatoVista = 'svg';
+        }
+
+        if ($rutaVista !== '' && resolver_vista_publica($rutaVista) !== null) {
             return [
                 'tipo' => 'vista',
                 'endpoint' => $rutaVista,
+                'formato' => $formatoVista,
             ];
         }
 
@@ -169,15 +177,11 @@ if (!function_exists('ejecutar_endpoint_api')) {
 
 if (!function_exists('ejecutar_endpoint_vista')) {
     /**
-     * Ejecuta vista grafica protegida solo por token GitHub de servidor.
+     * Valida precondiciones de seguridad para vistas (HTML/SVG).
      *
-     * @param string $endpoint Nombre del endpoint.
      * @return void
      */
-    function ejecutar_endpoint_vista(string $endpoint): void {
-        aplicar_encabezados_seguridad_html();
-        $claveVista = $endpoint;
-
+    function validar_precondiciones_vista(): void {
         $metodo = obtener_metodo_http();
         if ($metodo !== 'GET') {
             responder_error_html(405, 'Metodo no permitido.');
@@ -196,6 +200,24 @@ if (!function_exists('ejecutar_endpoint_vista')) {
         if (!token_github_esta_configurado()) {
             responder_error_html(403, 'Acceso denegado. Falta token de GitHub.');
         }
+    }
+
+    /**
+     * Ejecuta vista grafica protegida solo por token GitHub de servidor.
+     *
+     * @param string $endpoint Nombre del endpoint.
+     * @param string $formato Formato de salida (html|svg).
+     * @return void
+     */
+    function ejecutar_endpoint_vista(string $endpoint, string $formato = 'html'): void {
+        if ($formato === 'svg') {
+            aplicar_encabezados_seguridad_svg();
+        } else {
+            aplicar_encabezados_seguridad_html();
+        }
+
+        $claveVista = $endpoint;
+        validar_precondiciones_vista();
 
         if ($claveVista === 'porcent') {
             $ttlCache = obtener_cache_ttl_segundos();
@@ -206,7 +228,7 @@ if (!function_exists('ejecutar_endpoint_vista')) {
 
             $payload = cargar_respuesta_cache($rutaCache, $ttlCache);
             if (is_array($payload)) {
-                renderizar_vista_github($payload, 'porcent');
+                renderizar_vista_github($payload, 'porcent', $formato);
             }
 
             $repositorios = obtener_repositorios_propios();
@@ -225,7 +247,7 @@ if (!function_exists('ejecutar_endpoint_vista')) {
 
             guardar_respuesta_cache($rutaCache, $payload);
 
-            renderizar_vista_github($payload, 'porcent');
+            renderizar_vista_github($payload, 'porcent', $formato);
             return;
         }
 
@@ -241,7 +263,7 @@ if (!function_exists('ejecutar_endpoint_vista')) {
 
         $payload = cargar_respuesta_cache($rutaCache, $ttlCache);
         if (is_array($payload)) {
-            renderizar_vista_github($payload, 'stats');
+            renderizar_vista_github($payload, 'stats', $formato);
         }
 
         $repositorios = obtener_repositorios_propios();
@@ -256,7 +278,7 @@ if (!function_exists('ejecutar_endpoint_vista')) {
 
         guardar_respuesta_cache($rutaCache, $payload);
 
-        renderizar_vista_github($payload, 'stats');
+        renderizar_vista_github($payload, 'stats', $formato);
     }
 }
 
@@ -280,7 +302,8 @@ if (!function_exists('ejecutar_front_controller')) {
             return;
         }
 
-        ejecutar_endpoint_vista($destino['endpoint']);
+        $formato = isset($destino['formato']) ? (string) $destino['formato'] : 'html';
+        ejecutar_endpoint_vista($destino['endpoint'], $formato);
     }
 }
 

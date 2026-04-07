@@ -87,6 +87,8 @@ Entrega métricas globales agregadas de la cuenta, sin exponer nombres de repos 
 | `/api/end-stats` | JSON | Estadísticas generales de la cuenta | Token GitHub + API key |
 | `/porcent` | Vista | Visualización gráfica de lenguajes | Token GitHub |
 | `/stats` | Vista | Visualización gráfica de estadísticas | Token GitHub |
+| `/porcent/img` | SVG | Imagen SVG de la vista de lenguajes | Token GitHub |
+| `/stats/img` | SVG | Imagen SVG de la vista de estadísticas | Token GitHub |
 
 Cualquier otra ruta responde `404`.
 
@@ -129,6 +131,15 @@ curl -H "Authorization: Bearer tu_clave" https://tu-dominio.com/api/end-stats
 https://tu-dominio.com/porcent
 https://tu-dominio.com/stats
 ```
+
+### Embebido en GitHub con img (SVG)
+
+```html
+<img src="https://tu-dominio.com/porcent/img" alt="GitStatsVG Lenguajes" />
+<img src="https://tu-dominio.com/stats/img" alt="GitStatsVG Stats" />
+```
+
+Estas rutas generan un SVG a partir del HTML real de cada vista (conversion de vista a SVG), para mantener el mismo layout y datos del endpoint visual.
 
 ## Seguridad
 
