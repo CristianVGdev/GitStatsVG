@@ -1,0 +1,19 @@
+# Copia este archivo como src/api/config.php y completa valores reales.
+
+<?php
+/**
+ * Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+ * Proyecto: GitStatsVG (BSD-3-Clause)
+ */
+declare(strict_types=1);
+
+const GITSTATS_API_ACCESS_KEY = 'cambia-por-una-clave-segura';
+const GITSTATS_GITHUB_TOKEN = 'cambia-por-tu-token-github';
+const GITSTATS_ALLOWED_ORIGIN = '';
+const GITSTATS_GITHUB_IFRAME_URL = 'https://github.com';
+const GITSTATS_GITHUB_PER_PAGE = 100;
+const GITSTATS_GITHUB_MAX_PAGES = 10;
+const GITSTATS_REQUEST_TIMEOUT_SECONDS = 15;
+const GITSTATS_INCLUDE_FORKS = false;
+const GITSTATS_CACHE_DAYS = 1; // 0 = realtime (sin cache)
+const GITSTATS_RATE_LIMIT_PER_MINUTE = 120; // 0 = sin limite

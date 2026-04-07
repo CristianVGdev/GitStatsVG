@@ -1,0 +1,17 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+Options -Indexes
+RewriteEngine On
+
+# Bloquea acceso directo a archivos internos sensibles.
+<FilesMatch "^(config|configLoader|configExample|servicioApi|respuestaApi)\.php$">
+	Require all denied
+</FilesMatch>
+
+# Si existe archivo o carpeta real, no reescribe.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Cualquier otra ruta entra al front controller de API.
+RewriteRule ^ index.php [L,QSA]

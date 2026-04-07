@@ -1,0 +1,10 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+blank_issues_enabled: false
+contact_links:
+  - name: Proceso de reporte de seguridad / Security reporting process
+    url: https://github.com/CristianVGdev/gitstats/blob/main/.github/SECURITY.md
+    about: Lee como reportar vulnerabilidades de forma segura / Read how to report vulnerabilities safely
+  - name: Politica de soporte / Support policy
+    url: https://github.com/CristianVGdev/gitstats/blob/main/.github/SUPPORT.md
+    about: Consulta expectativas de soporte y tiempos de respuesta / Read support expectations and response times

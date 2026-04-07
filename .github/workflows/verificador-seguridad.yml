@@ -1,0 +1,85 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+name: Verificador de Seguridad
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  bloquear-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar archivos y constantes sensibles
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE=""
+          HEAD="${GITHUB_SHA}"
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+          fi
+
+          git diff --name-only "$BASE" "$HEAD" > changed_files.txt
+          echo "Archivos modificados:"
+          cat changed_files.txt || true
+
+          if grep -qx "src/api/config.php" changed_files.txt; then
+            echo "ERROR: src/api/config.php no debe versionarse."
+            exit 1
+          fi
+
+          if git ls-files --error-unmatch src/api/config.php >/dev/null 2>&1; then
+            echo "ERROR: src/api/config.php sigue versionado. Eliminalo del repositorio."
+            exit 1
+          fi
+
+          VIOLATION=0
+
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+
+            case "$file" in
+              src/api/configExample.php|src/api/config.example)
+                continue
+                ;;
+            esac
+
+            if grep -nE "const[[:space:]]+GITSTATS_(API_ACCESS_KEY|GITHUB_TOKEN)[[:space:]]*=" "$file" >/dev/null 2>&1; then
+              echo "ERROR: constante sensible detectada en archivo versionado: $file"
+              VIOLATION=1
+            fi
+
+            if grep -nE "(ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,})" "$file" >/dev/null 2>&1; then
+              echo "ERROR: posible token GitHub detectado en: $file"
+              VIOLATION=1
+            fi
+          done < changed_files.txt
+
+          if [ "$VIOLATION" -ne 0 ]; then
+            echo "Fallo de seguridad: se detectaron credenciales o constantes sensibles."
+            echo "Nota: GitHub Actions no puede borrar automaticamente un commit remoto de forma segura."
+            echo "Accion recomendada: rotar credenciales y limpiar historial antes de merge."
+            exit 1
+          fi
+
+          echo "Verificacion de seguridad OK."

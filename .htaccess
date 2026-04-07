@@ -1,0 +1,18 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+Options -Indexes
+RewriteEngine On
+
+<IfModule mod_headers.c>
+	Header always unset X-Powered-By
+	Header unset X-Powered-By
+	Header always unset Server
+	Header unset Server
+</IfModule>
+
+# Nunca expongas el directorio interno src por HTTP.
+RewriteRule ^src(/|$) - [F,L,NC]
+
+# Todo entra por el index raiz.
+RewriteCond %{REQUEST_URI} !^/index\.php$ [NC]
+RewriteRule ^ index.php [L,QSA]

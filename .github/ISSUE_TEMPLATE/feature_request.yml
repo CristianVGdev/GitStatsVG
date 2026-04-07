@@ -1,0 +1,57 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+name: Solicitud de mejora / Feature request
+description: Propone una mejora para el proyecto / Suggest an improvement
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Las mejoras se revisan en modalidad best-effort. / Feature requests are reviewed on a best-effort basis.
+        La aceptacion e implementacion no estan garantizadas. / Acceptance and implementation are not guaranteed.
+
+  - type: input
+    id: problem
+    attributes:
+      label: Problema a resolver / Problem statement
+      description: Que problema concreto intentas resolver? / What concrete problem are you trying to solve?
+      placeholder: El comportamiento actual provoca...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solucion propuesta / Proposed solution
+      placeholder: Describe el enfoque propuesto / Describe your proposed approach
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas / Alternatives considered
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impacto en seguridad y compatibilidad / Security and compatibility impact
+      description: Menciona impacto esperado en rutas, auth, cache, headers o rendimiento
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptacion sugeridos / Suggested acceptance criteria
+      description: Como sabremos que la mejora esta correctamente implementada? / How will we know this is correctly implemented?
+      placeholder: |
+        - Criterio 1 ...
+        - Criterio 2 ...
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmacion / Confirmation
+      options:
+        - label: Entiendo que esta solicitud puede no priorizarse pronto / I understand this request may not be prioritized soon
+          required: true

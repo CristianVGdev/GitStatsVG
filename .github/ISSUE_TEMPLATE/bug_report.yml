@@ -1,0 +1,70 @@
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+name: Reporte de bug / Bug report
+description: Reporta un problema reproducible / Report a reproducible issue
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar un bug. / Thanks for reporting a bug.
+        No incluyas credenciales, tokens ni datos privados. / Do not include credentials, tokens, or private data.
+
+  - type: input
+    id: route
+    attributes:
+      label: Ruta afectada / Affected route
+      description: Ejemplo: /api/end-stats o /stats
+      placeholder: /api/end-stats
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos de reproduccion / Reproduction steps
+      description: Describe pasos exactos para reproducir / Provide exact reproduction steps
+      placeholder: |
+        1. Realizar solicitud a ...
+        2. Observar ...
+        3. Resultado esperado ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado / Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento actual / Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Entorno / Environment
+      description: Ejemplo: PHP 8.2, Apache, Windows/Laragon
+      placeholder: PHP 8.x + Apache + Windows
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs o fragmentos de respuesta / Logs or response snippets
+      description: Elimina valores sensibles antes de publicar / Remove sensitive values before posting
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmacion / Confirmation
+      options:
+        - label: Confirmo que removi informacion sensible / I removed sensitive information
+          required: true
+        - label: Confirmo que busque reportes duplicados / I searched for duplicates
+          required: true

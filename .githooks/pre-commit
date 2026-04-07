@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026 CristianVGdev (github.com/CristianVGdev)
+# Proyecto: GitStatsVG (BSD-3-Clause)
+set -euo pipefail
+
+STAGED_FILES="$(git diff --cached --name-only)"
+
+if echo "$STAGED_FILES" | grep -qx "src/api/config.php"; then
+  echo "ERROR: src/api/config.php no se debe commitear."
+  exit 1
+fi
+
+if git diff --cached | grep -nE "const[[:space:]]+GITSTATS_(API_ACCESS_KEY|GITHUB_TOKEN)[[:space:]]*=" >/dev/null 2>&1; then
+  echo "ERROR: se detectaron constantes sensibles en el commit staged."
+  exit 1
+fi
+
+if git diff --cached | grep -nE "(ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{20,})" >/dev/null 2>&1; then
+  echo "ERROR: posible token de GitHub detectado en cambios staged."
+  exit 1
+fi
+
+echo "Pre-commit OK: no se detectaron credenciales."
