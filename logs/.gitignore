@@ -1,0 +1,3 @@
+# Mantener el directorio de logs versionado sin subir logs runtime.
+*
+!.gitignore

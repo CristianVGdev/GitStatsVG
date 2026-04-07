@@ -20,10 +20,13 @@ if (!function_exists('endurecer_entorno_ejecucion')) {
 
 endurecer_entorno_ejecucion();
 
+require_once __DIR__ . '/logger.php';
 require_once __DIR__ . '/src/api/configLoader.php';
 require_once __DIR__ . '/src/api/respuestaApi.php';
 require_once __DIR__ . '/src/api/servicioApi.php';
 require_once __DIR__ . '/src/router/routerVistas.php';
+
+inicializar_logger_app();
 
 if (!function_exists('obtener_ruta_entrada')) {
     /**
@@ -72,6 +75,33 @@ if (!function_exists('obtener_ruta_entrada')) {
 
 if (!function_exists('resolver_destino_entrada')) {
     /**
+     * Genera candidatos removiendo prefijos para entornos bajo subruta.
+     *
+     * @param string $ruta Ruta normalizada de entrada.
+     * @return array<int,string>
+     */
+    function generar_candidatos_ruta_entrada(string $ruta): array {
+        $ruta = normalizar_ruta_publica_vista($ruta);
+        if ($ruta === '') {
+            return [''];
+        }
+
+        $candidatos = [$ruta];
+        $segmentos = explode('/', $ruta);
+        $total = count($segmentos);
+
+        for ($i = 1; $i < $total; $i++) {
+            $candidato = implode('/', array_slice($segmentos, $i));
+            $candidato = normalizar_ruta_publica_vista($candidato);
+            if ($candidato !== '' && !in_array($candidato, $candidatos, true)) {
+                $candidatos[] = $candidato;
+            }
+        }
+
+        return $candidatos;
+    }
+
+    /**
      * Resuelve si la ruta pertenece a API o a vista.
      *
      * @param string $ruta Ruta solicitada.
@@ -80,27 +110,46 @@ if (!function_exists('resolver_destino_entrada')) {
     function resolver_destino_entrada(string $ruta): ?array {
         $apiPermitidos = ['api/end-porcent', 'api/end-stats'];
 
-        if (in_array($ruta, $apiPermitidos, true)) {
-            return [
-                'tipo' => 'api',
-                'endpoint' => substr($ruta, 4),
-            ];
+        $solicitudImg = false;
+        $rutaVistaOriginal = normalizar_ruta_publica_vista($ruta);
+        $rutaVistaNormalizada = '';
+        $candidatos = generar_candidatos_ruta_entrada($ruta);
+
+        foreach ($candidatos as $candidato) {
+            if (in_array($candidato, $apiPermitidos, true)) {
+                return [
+                    'tipo' => 'api',
+                    'endpoint' => substr($candidato, 4),
+                ];
+            }
+
+            $rutaVista = normalizar_ruta_publica_vista($candidato);
+            $formatoVista = 'html';
+
+            if (str_ends_with($rutaVista, '/img')) {
+                $rutaVista = normalizar_ruta_publica_vista(substr($rutaVista, 0, -4));
+                $formatoVista = 'svg';
+                $solicitudImg = true;
+            }
+
+            if ($rutaVista !== '' && resolver_vista_publica($rutaVista) !== null) {
+                return [
+                    'tipo' => 'vista',
+                    'endpoint' => $rutaVista,
+                    'formato' => $formatoVista,
+                ];
+            }
+
+            $rutaVistaNormalizada = $rutaVista;
         }
 
-        $rutaVista = normalizar_ruta_publica_vista($ruta);
-        $formatoVista = 'html';
-
-        if (str_ends_with($rutaVista, '/img')) {
-            $rutaVista = normalizar_ruta_publica_vista(substr($rutaVista, 0, -4));
-            $formatoVista = 'svg';
-        }
-
-        if ($rutaVista !== '' && resolver_vista_publica($rutaVista) !== null) {
-            return [
-                'tipo' => 'vista',
-                'endpoint' => $rutaVista,
-                'formato' => $formatoVista,
-            ];
+        if ($solicitudImg) {
+            registrar_evento_http_img(404, 'img_route_not_found', [
+                'rutaEntrada' => $ruta,
+                'rutaVistaOriginal' => $rutaVistaOriginal,
+                'rutaVistaNormalizada' => $rutaVistaNormalizada,
+                'motivo' => 'No se encontro una vista registrada para sufijo /img.',
+            ]);
         }
 
         return null;
@@ -183,7 +232,8 @@ if (!function_exists('ejecutar_endpoint_vista')) {
      */
     function validar_precondiciones_vista(): void {
         $metodo = obtener_metodo_http();
-        if ($metodo !== 'GET') {
+        if ($metodo !== 'GET' && $metodo !== 'HEAD') {
+            header('Allow: GET, HEAD');
             responder_error_html(405, 'Metodo no permitido.');
         }
 
@@ -218,6 +268,11 @@ if (!function_exists('ejecutar_endpoint_vista')) {
 
         $claveVista = $endpoint;
         validar_precondiciones_vista();
+
+        if (obtener_metodo_http() === 'HEAD') {
+            http_response_code(200);
+            exit;
+        }
 
         if ($claveVista === 'porcent') {
             $ttlCache = obtener_cache_ttl_segundos();

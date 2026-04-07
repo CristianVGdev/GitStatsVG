@@ -61,8 +61,7 @@ if (!function_exists('aplicar_encabezados_seguridad_svg')) {
         header('Referrer-Policy: no-referrer');
         header('Permissions-Policy: geolocation=(), camera=(), microphone=()');
         header('X-Permitted-Cross-Domain-Policies: none');
-        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
+        header('Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=60');
     }
 }
 
@@ -75,6 +74,12 @@ if (!function_exists('responder_error_html')) {
      * @return void
      */
     function responder_error_html(int $codigo, string $mensaje): void {
+        if (function_exists('registrar_evento_http_img')) {
+            registrar_evento_http_img($codigo, 'img_view_error', [
+                'mensaje' => $mensaje,
+            ]);
+        }
+
         http_response_code($codigo);
         echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Error</title></head><body>';
         echo '<h1>Error ' . $codigo . '</h1>';
